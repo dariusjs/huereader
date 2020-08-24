@@ -10,5 +10,5 @@ curl -d '{"devicetype:"application_name#device_name"}' --header "Content-Type: a
 You will need to export an environment variable HUE_API_KEY with the API key extracted from above to and then the program will discover hue bridges and sensors within the network.
 
 ```
-HUE_API_KEY=some_api_key cargo run  
+HUE_API_KEY=some_api_key cargo run  INFLUX_DB_ADDRESS=http://INFLUXDB_ADDRESS:8086/write?db=homestats huereader
 ```
