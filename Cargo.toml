@@ -15,3 +15,4 @@ serde = { version = "1.0", features = ["derive"] }
 futures = "0.3"
 http = "0.2.1"
 openssl = { version = "0.10", features = ["vendored"] }
+influxdb = { version = "0.3.0", features = ["derive"] }
