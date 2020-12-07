@@ -12,7 +12,3 @@ tokio = { version = "0.2", features = ["full"] }
 tokio-util = { version = "0.5.0", features = ["full"] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-futures = "0.3"
-http = "0.2.1"
-openssl = { version = "0.10", features = ["vendored"] }
-influxdb = { version = "0.3.0", features = ["derive"] }

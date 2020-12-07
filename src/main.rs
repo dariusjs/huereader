@@ -11,7 +11,7 @@ async fn main() -> Result<(), reqwest::Error> {
         ..Default::default()
     };
 
-    let mut interval_day = tokio::time::interval(Duration::from_secs(3));
+    let mut interval_day = tokio::time::interval(Duration::from_secs(300));
     loop {
         let now = interval_day.tick().await;
         println!("Initialising HueReader. (Time now = {:?})", now);
