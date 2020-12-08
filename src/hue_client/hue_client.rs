@@ -105,7 +105,7 @@ impl HueSensors {
                 return payload;
             }
             crate::hue_client::HueSensors::ZLLLightLevel(hue_light_sensor) => {
-                let mut lux: f64;
+                let lux: f64;
                 let device_battery: f64;
                 let device_name = hue_light_sensor
                     .name
@@ -121,10 +121,7 @@ impl HueSensors {
                 let state = hue_light_sensor.state;
                 match state {
                     lightlevel => {
-                        lux = ((lightlevel.lightlevel - 1.0) / 10000.0).log10();
-                        if lux.is_nan() {
-                            lux = 0.0;
-                        }
+                        lux = 10.0f64.powf((lightlevel.lightlevel - 1.0) / 10000.0)
                     }
                 }
                 let payload = format!(
