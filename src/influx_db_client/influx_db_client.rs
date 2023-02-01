@@ -1,3 +1,4 @@
+use log::debug;
 use std::env;
 use std::string::String;
 
@@ -8,20 +9,21 @@ pub struct InfluxDbClient {
 
 impl InfluxDbClient {
     pub async fn send_payload(&self, payload: String) -> Result<(), reqwest::Error> {
-        let response = self.http_client
+        let response = self
+            .http_client
             .post(&self.influx_db_address)
             .body(payload.into_bytes())
             .header("Content-Type", "application/octet-stream")
             .send()
             .await;
-        println!("{:?}", response);
+        debug!("{:?}", response);
         Ok(())
     }
 }
 
 impl Default for InfluxDbClient {
     fn default() -> Self {
-        InfluxDbClient{
+        InfluxDbClient {
             influx_db_address: get_env_var("INFLUX_DB_ADDRESS"),
             http_client: reqwest::Client::new(),
         }
