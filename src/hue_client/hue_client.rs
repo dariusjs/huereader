@@ -1,8 +1,8 @@
-use serde_json::Value;
-use std::env;
 use serde::{Deserialize, Serialize};
-use std::string::String;
+use serde_json::Value;
 use std::collections::HashMap;
+use std::env;
+use std::string::String;
 
 pub struct HueClient {
     pub hue_discovery_url: String,
@@ -10,7 +10,7 @@ pub struct HueClient {
     pub http_client: reqwest::Client,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct HueBridge {
     id: String,
     pub internalipaddress: String,
@@ -78,7 +78,7 @@ impl HueSensors {
     pub fn payload(self) -> String {
         let payload = "";
         match self {
-            crate::hue_client::HueSensors::ZLLTemperature(hue_temp_sensor) => {
+            HueSensors::ZLLTemperature(hue_temp_sensor) => {
                 let device_temperature: f64;
                 let device_battery: f64;
                 let device_name = hue_temp_sensor
@@ -120,9 +120,7 @@ impl HueSensors {
                 }
                 let state = hue_light_sensor.state;
                 match state {
-                    lightlevel => {
-                        lux = 10.0f64.powf((lightlevel.lightlevel - 1.0) / 10000.0)
-                    }
+                    lightlevel => lux = 10.0f64.powf((lightlevel.lightlevel - 1.0) / 10000.0),
                 }
                 let payload = format!(
                     "hue,name={} lux={:#?},battery={:#?}",
@@ -130,7 +128,7 @@ impl HueSensors {
                 );
                 return payload;
             }
-            _ => ()
+            _ => (),
         }
         return payload.to_string();
     }
@@ -139,19 +137,25 @@ impl HueSensors {
 impl HueClient {
     pub async fn discover_bridges(&self) -> Result<Vec<HueBridge>, reqwest::Error> {
         let response = reqwest::get(&self.hue_discovery_url).await?;
-        assert!(response.status().is_success());    
+        assert!(response.status().is_success());
         let bridge_body = response.text().await?;
         let data: Value = serde_json::from_str(&bridge_body).unwrap();
         let hue_bridges: Vec<HueBridge> = serde_json::from_value(data).unwrap();
         Ok(hue_bridges)
     }
-    pub async fn scan_resources(&self, hue_bridges: Vec<HueBridge>) -> Result<Vec<std::string::String>, reqwest::Error> {
+    pub async fn scan_resources(
+        &self,
+        hue_bridges: Vec<HueBridge>,
+    ) -> Result<Vec<std::string::String>, reqwest::Error> {
         let mut sensor_list = vec![];
         for bridge in hue_bridges {
-            let hue_sensors_url = format!("http://{}/api/{}/", bridge.internalipaddress, self.hue_api_key);
+            let hue_sensors_url = format!(
+                "http://{}/api/{}/",
+                bridge.internalipaddress, self.hue_api_key
+            );
             let response = self.http_client.get(&hue_sensors_url).send().await?;
             let bridge_scan_body = response.text().await?;
-    
+
             let hue_resources: HueResources = serde_json::from_str(&bridge_scan_body).unwrap();
             for (_, item) in hue_resources.sensors {
                 let sensor = item.payload();
@@ -160,7 +164,7 @@ impl HueClient {
                 }
             }
         }
-        Ok(sensor_list)        
+        Ok(sensor_list)
     }
 }
 
@@ -173,7 +177,7 @@ fn get_env_var(key: &str) -> String {
 
 impl Default for HueClient {
     fn default() -> Self {
-        HueClient{
+        HueClient {
             hue_discovery_url: "https://discovery.meethue.com/".to_string(),
             hue_api_key: get_env_var("HUE_API_KEY"),
             http_client: reqwest::Client::new(),
