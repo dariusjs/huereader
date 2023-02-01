@@ -1,5 +1,5 @@
 use log::{debug, info};
-use tokio::time::Duration;
+use tokio::time::{self, Duration};
 mod hue_client;
 mod influx_db_client;
 
@@ -14,9 +14,9 @@ async fn main() -> Result<(), reqwest::Error> {
     };
     info!("Initialising HueReader");
 
-    let mut interval_day = tokio::time::interval(Duration::from_secs(300));
+    let mut interval = time::interval(Duration::from_secs(300));
     loop {
-        let now = interval_day.tick().await;
+        let now = interval.tick().await;
         debug!("Ticker: (Time now = {:?})", now);
 
         let hue_bridges = hue_client.discover_bridges().await;
