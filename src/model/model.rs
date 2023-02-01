@@ -94,7 +94,6 @@ impl HueSensors {
                     "hue,name={} temperature={:#?},battery={:#?}",
                     device_name, device_temperature, device_battery
                 );
-                // println!("payload is: {:#?}", payload);
                 return payload;
             }
             crate::model::HueSensors::ZLLLightLevel(hue_light_sensor) => {
@@ -124,10 +123,9 @@ impl HueSensors {
                     "hue,name={} lux={:#?},battery={:#?}",
                     device_name, lux, device_battery
                 );
-                // println!("payload is: {:#?}", payload);
                 return payload;
             }
-            _ => ()
+            _ => (),
         }
         return payload.to_string();
     }
