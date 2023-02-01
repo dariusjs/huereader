@@ -14,14 +14,17 @@ async fn main() -> Result<(), reqwest::Error> {
     };
     info!("Initialising HueReader");
 
+    // read https://discovery.meethue.com only once as there are rate limits
+    let hue_bridges = hue_client.discover_bridges().await?;
     let mut interval = time::interval(Duration::from_secs(300));
+
     loop {
+        let destination = hue_bridges.clone();
         let now = interval.tick().await;
         debug!("Ticker: (Time now = {:?})", now);
 
-        let hue_bridges = hue_client.discover_bridges().await;
         debug!("hue_bridges is: {:?}", hue_bridges);
-        let hue_resources = hue_client.scan_resources(hue_bridges?).await;
+        let hue_resources = hue_client.scan_resources(destination).await;
         debug!("hue_resources is: {:?}", hue_resources);
         for item in hue_resources? {
             let _response = influxdb_client.send_payload(item).await;
