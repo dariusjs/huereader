@@ -1,3 +1,4 @@
+use log::error;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -143,6 +144,7 @@ impl HueClient {
         let hue_bridges: Vec<HueBridge> = serde_json::from_value(data).unwrap();
         Ok(hue_bridges)
     }
+
     pub async fn scan_resources(
         &self,
         hue_bridges: Vec<HueBridge>,
@@ -153,18 +155,27 @@ impl HueClient {
                 "http://{}/api/{}/",
                 bridge.internalipaddress, self.hue_api_key
             );
-            let response = self.http_client.get(&hue_sensors_url).send().await?;
-            let bridge_scan_body = response.text().await?;
 
-            let hue_resources: HueResources = serde_json::from_str(&bridge_scan_body).unwrap();
-            for (_, item) in hue_resources.sensors {
-                let sensor = item.payload();
-                if sensor != "" {
-                    sensor_list.push(sensor);
+            match self.get_bridge_data(hue_sensors_url).await {
+                Ok(data) => {
+                    let hue_resources: HueResources = serde_json::from_str(&data).unwrap();
+                    for (_, item) in hue_resources.sensors {
+                        let sensor = item.payload();
+                        if sensor != "" {
+                            sensor_list.push(sensor);
+                        }
+                    }
                 }
+                Err(e) => error!("Failure to connect to Hue Bridge {}", e),
             }
         }
         Ok(sensor_list)
+    }
+
+    async fn get_bridge_data(&self, hue_sensors_url: String) -> Result<String, reqwest::Error> {
+        let response = self.http_client.get(&hue_sensors_url).send().await?;
+        let bridge_scan_body = response.text().await?;
+        Ok(bridge_scan_body)
     }
 }
 
